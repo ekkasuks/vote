@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>🏆 ระบบโหวตผลงานนักเรียน</title>
+<style>
+  :root {
+    --primary: #4f46e5;
+    --primary-light: #818cf8;
+    --primary-dark: #3730a3;
+    --accent: #f59e0b;
+    --accent2: #10b981;
+    --danger: #ef4444;
+    --bg: #f0f4ff;
+    --card: #ffffff;
+    --text: #1e1b4b;
+    --text2: #6366f1;
+    --border: #e0e7ff;
+    --shadow: 0 4px 24px rgba(79,70,229,0.10);
+    --r: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Sarabun', 'Kanit', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  /* TOPBAR */
+  .topbar {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%);
+    color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px;
+    height: 60px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(79,70,229,0.18);
+  }
+  .topbar-title { font-size: 1.15rem; font-weight: 700; letter-spacing: .5px; }
+  .topbar-title span { font-size: 1.4rem; }
+  .topbar-actions { display: flex; gap: 8px; }
+  .btn-icon {
+    background: rgba(255,255,255,0.15);
+    border: none; border-radius: 50%; width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 1.1rem; color: #fff;
+    transition: background .2s;
+  }
+  .btn-icon:hover { background: rgba(255,255,255,0.3); }
+
+  /* NAV TABS */
+  .nav-tabs {
+    display: flex; background: var(--card);
+    border-bottom: 2px solid var(--border);
+    overflow-x: auto; gap: 0;
+  }
+  .nav-tab {
+    flex: 1; min-width: 80px;
+    padding: 12px 8px; text-align: center;
+    font-size: .85rem; font-weight: 600;
+    color: #9ca3af; cursor: pointer; border: none;
+    background: none; transition: all .2s;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+  }
+  .nav-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .nav-tab:hover:not(.active) { color: var(--primary-light); }
+
+  /* PAGE */
+  .page { display: none; padding: 16px; max-width: 720px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* CARD */
+  .card {
+    background: var(--card); border-radius: var(--r);
+    box-shadow: var(--shadow); padding: 18px;
+    margin-bottom: 14px; border: 1px solid var(--border);
+  }
+  .card-title {
+    font-size: 1rem; font-weight: 700; color: var(--primary);
+    margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+  }
+
+  /* STATUS BADGE */
+  .badge {
+    display: inline-block; padding: 2px 12px; border-radius: 999px;
+    font-size: .78rem; font-weight: 700;
+  }
+  .badge-open { background: #d1fae5; color: #065f46; }
+  .badge-closed { background: #fee2e2; color: #991b1b; }
+
+  /* BUTTON */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 18px; border-radius: 10px; border: none;
+    font-size: .88rem; font-weight: 600; cursor: pointer;
+    transition: all .2s; white-space: nowrap;
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-success { background: var(--accent2); color: #fff; }
+  .btn-success:hover { background: #059669; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover { background: #b91c1c; }
+  .btn-outline {
+    background: none; border: 2px solid var(--border); color: var(--text);
+  }
+  .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+  .btn-sm { padding: 5px 12px; font-size: .8rem; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* FORM */
+  .form-group { margin-bottom: 12px; }
+  .form-label { display: block; font-size: .82rem; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+  .form-input, .form-select, .form-textarea {
+    width: 100%; padding: 9px 13px; border-radius: 10px;
+    border: 2px solid var(--border); font-size: .9rem; color: var(--text);
+    background: #f8f9fe; outline: none; transition: border .2s;
+    font-family: inherit;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--primary);
+  }
+  .form-textarea { resize: vertical; min-height: 64px; }
+
+  /* VOTER SELECT CARD */
+  .voter-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px; margin-bottom: 14px;
+  }
+  .voter-btn {
+    padding: 10px; border-radius: 12px;
+    border: 2.5px solid var(--border); background: var(--card);
+    font-size: .88rem; font-weight: 600; cursor: pointer; text-align: center;
+    transition: all .2s; color: var(--text);
+  }
+  .voter-btn:hover { border-color: var(--primary); color: var(--primary); background: #eef2ff; }
+  .voter-btn.selected { border-color: var(--primary); background: var(--primary); color: #fff; }
+
+  /* WORK CARD */
+  .works-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .work-card {
+    border-radius: var(--r); border: 2.5px solid var(--border);
+    overflow: hidden; background: var(--card); cursor: pointer;
+    transition: all .2s; position: relative;
+  }
+  .work-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .work-card.rank1 { border-color: #f59e0b; background: #fffbeb; }
+  .work-card.rank2 { border-color: #9ca3af; background: #f9fafb; }
+  .work-card.rank3 { border-color: #cd7c2f; background: #fff7ed; }
+  .work-img {
+    width: 100%; height: 140px; object-fit: cover; display: block;
+    background: #e0e7ff;
+  }
+  .work-img-placeholder {
+    width: 100%; height: 140px;
+    background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem;
+  }
+  .work-info { padding: 10px 12px; }
+  .work-name { font-size: .9rem; font-weight: 700; margin-bottom: 2px; }
+  .work-desc { font-size: .78rem; color: #6b7280; }
+  .work-rank-badge {
+    position: absolute; top: 8px; right: 8px;
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; font-weight: 800;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  }
+  .rank-badge-1 { background: #f59e0b; color: #fff; }
+  .rank-badge-2 { background: #9ca3af; color: #fff; }
+  .rank-badge-3 { background: #cd7c2f; color: #fff; }
+
+  /* RANK SLOTS */
+  .rank-slots { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+  .rank-slot {
+    display: flex; align-items: center; gap: 12px;
+    background: #f8f9fe; border-radius: 12px; padding: 10px 14px;
+    border: 2px dashed var(--border);
+  }
+  .rank-slot.filled { border-style: solid; }
+  .rank-slot.rank1-slot { border-color: #f59e0b; }
+  .rank-slot.rank2-slot { border-color: #9ca3af; }
+  .rank-slot.rank3-slot { border-color: #cd7c2f; }
+  .rank-slot-icon { font-size: 1.4rem; width: 36px; text-align: center; }
+  .rank-slot-info { flex: 1; }
+  .rank-slot-label { font-size: .75rem; font-weight: 600; color: #9ca3af; }
+  .rank-slot-name { font-size: .92rem; font-weight: 700; color: var(--text); }
+  .rank-slot-clear { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 1.1rem; padding: 4px; }
+
+  /* DASHBOARD */
+  .podium { display: flex; align-items: flex-end; justify-content: center; gap: 10px; margin: 20px 0 30px; }
+  .podium-item { display: flex; flex-direction: column; align-items: center; }
+  .podium-rank { font-size: 1.5rem; }
+  .podium-img-wrap {
+    width: 80px; height: 80px; border-radius: 50%;
+    overflow: hidden; border: 3px solid;
+    margin-bottom: 8px; display: flex; align-items: center; justify-content: center;
+    background: #e0e7ff; font-size: 2rem;
+  }
+  .podium-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .podium-item.p1 .podium-img-wrap { border-color: #f59e0b; width: 90px; height: 90px; }
+  .podium-name { font-size: .82rem; font-weight: 700; text-align: center; max-width: 90px; }
+  .podium-score { font-size: .78rem; color: var(--primary); font-weight: 600; }
+  .podium-block {
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 10px 10px 0 0; font-size: 1.5rem; font-weight: 800;
+    color: #fff; width: 70px;
+  }
+  .p1 .podium-block { background: #f59e0b; height: 90px; width: 80px; }
+  .p2 .podium-block { background: #9ca3af; height: 70px; }
+  .p3 .podium-block { background: #cd7c2f; height: 55px; }
+
+  .score-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  .score-table th {
+    background: var(--primary); color: #fff;
+    padding: 8px 12px; text-align: left;
+  }
+  .score-table th:first-child { border-radius: 8px 0 0 0; }
+  .score-table th:last-child { border-radius: 0 8px 0 0; }
+  .score-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  .score-table tr:hover td { background: #eef2ff; }
+  .score-table .medal { font-size: 1.1rem; }
+
+  /* LIST ITEMS */
+  .list-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .list-item:last-child { border-bottom: none; }
+  .list-item-icon {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--primary); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .9rem; flex-shrink: 0;
+  }
+  .list-item-info { flex: 1; }
+  .list-item-name { font-size: .9rem; font-weight: 600; }
+  .list-item-sub { font-size: .78rem; color: #9ca3af; }
+  .list-item-actions { display: flex; gap: 6px; }
+
+  /* WORK THUMB */
+  .work-thumb {
+    width: 40px; height: 40px; border-radius: 8px;
+    object-fit: cover; flex-shrink: 0;
+    background: #e0e7ff;
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.45); z-index: 200;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card); border-radius: var(--r);
+    padding: 22px; width: 100%; max-width: 440px;
+    box-shadow: 0 8px 40px rgba(0,0,0,.2);
+    animation: slideUp .2s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } }
+  .modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 14px; color: var(--primary); }
+
+  /* PIN PAD */
+  .pin-display {
+    text-align: center; font-size: 2rem; letter-spacing: 14px;
+    margin: 10px 0; color: var(--primary); font-weight: 700;
+    min-height: 48px;
+  }
+  .pin-pad {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 260px; margin: 0 auto;
+  }
+  .pin-key {
+    padding: 14px; border-radius: 12px; border: 2px solid var(--border);
+    background: var(--card); font-size: 1.2rem; font-weight: 700;
+    cursor: pointer; text-align: center; transition: all .15s;
+    color: var(--text);
+  }
+  .pin-key:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .pin-key.wide { grid-column: span 2; }
+  .pin-key.danger { border-color: var(--danger); color: var(--danger); }
+  .pin-key.danger:hover { background: var(--danger); color: #fff; }
+
+  /* IMAGE MODAL */
+  .img-modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.85); z-index: 300;
+    align-items: center; justify-content: center; padding: 20px;
+    cursor: pointer;
+  }
+  .img-modal-overlay.open { display: flex; }
+  .img-modal-overlay img { max-width: 100%; max-height: 90vh; border-radius: 12px; }
+
+  /* TOAST */
+  .toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 400; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+  .toast {
+    background: var(--text); color: #fff; padding: 10px 22px;
+    border-radius: 999px; font-size: .88rem; font-weight: 600;
+    box-shadow: var(--shadow); animation: fadeIn .2s ease;
+    white-space: nowrap;
+  }
+  .toast.success { background: var(--accent2); }
+  .toast.error { background: var(--danger); }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } }
+
+  /* LOADING */
+  .loading { text-align: center; padding: 40px; color: #9ca3af; font-size: .95rem; }
+  .spinner {
+    width: 40px; height: 40px; margin: 0 auto 12px;
+    border: 4px solid var(--border); border-top-color: var(--primary);
+    border-radius: 50%; animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* VOTED INDICATOR */
+  .voted-banner {
+    background: linear-gradient(90deg, #d1fae5, #a7f3d0);
+    border: 2px solid #10b981; border-radius: 12px;
+    padding: 12px 18px; text-align: center;
+    font-weight: 700; color: #065f46; font-size: .95rem;
+    margin-bottom: 14px;
+  }
+
+  .text-center { text-align: center; }
+  .mt-10 { margin-top: 10px; }
+  .mt-16 { margin-top: 16px; }
+  .flex { display: flex; }
+  .gap-8 { gap: 8px; }
+  .justify-between { justify-content: space-between; }
+  .items-center { align-items: center; }
+  .flex-wrap { flex-wrap: wrap; }
+
+  @media (max-width: 480px) {
+    .works-grid { grid-template-columns: repeat(2, 1fr); }
+    .voter-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-title"><span>🏆</span> โหวตผลงานนักเรียน</div>
+  <div class="topbar-actions">
+    <button class="btn-icon" onclick="openAdminModal()" title="แอดมิน">⚙️</button>
+    <button class="btn-icon" onclick="refreshAll()" title="รีเฟรช">🔄</button>
+  </div>
+</div>
+
+<!-- NAV TABS -->
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="showPage('vote', this)">🗳️ โหวต</button>
+  <button class="nav-tab" onclick="showPage('dashboard', this)">📊 ผลคะแนน</button>
+  <button class="nav-tab" onclick="showPage('settings', this)" id="settingsTab" style="display:none">🛠️ ตั้งค่า</button>
+</div>
+
+<!-- ===================== PAGE: VOTE ===================== -->
+<div class="page active" id="page-vote">
+  <div id="votingClosedBanner" class="card" style="display:none; background:linear-gradient(90deg,#fee2e2,#fecaca); border-color:#ef4444; text-align:center;">
+    <div style="font-size:1.5rem">🔒</div>
+    <div style="font-weight:700; color:#991b1b; font-size:1rem; margin-top:6px">ปิดรับการโหวตแล้ว</div>
+    <div style="font-size:.85rem; color:#b91c1c; margin-top:4px">ดูผลการโหวตได้ที่แท็บ "ผลคะแนน"</div>
+  </div>
+
+  <div id="voteContent">
+    <!-- STEP 1: เลือกผู้โหวต -->
+    <div id="stepSelectVoter" class="card">
+      <div class="card-title">👤 กรุณาเลือกชื่อของคุณ</div>
+      <div id="voterGrid" class="voter-grid">
+        <div class="loading"><div class="spinner"></div>กำลังโหลด...</div>
+      </div>
+    </div>
+
+    <!-- STEP 2: โหวต -->
+    <div id="stepVote" style="display:none">
+      <div class="voted-banner" id="alreadyVotedBanner" style="display:none">
+        ✅ คุณโหวตเรียบร้อยแล้ว ขอบคุณ!
+      </div>
+
+      <div class="card" id="rankSlotsCard">
+        <div class="card-title">🎯 เลือกผลงานที่ชอบ 3 อันดับ</div>
+        <div class="rank-slots">
+          <div class="rank-slot rank1-slot" id="slot1">
+            <div class="rank-slot-icon">🥇</div>
+            <div class="rank-slot-info">
+              <div class="rank-slot-label">อันดับ 1 (3 คะแนน)</div>
+              <div class="rank-slot-name" id="slot1Name">— ยังไม่ได้เลือก —</div>
+            </div>
+            <button class="rank-slot-clear" onclick="clearRank(1)" style="display:none" id="clearSlot1">✕</button>
+          </div>
+          <div class="rank-slot rank2-slot" id="slot2">
+            <div class="rank-slot-icon">🥈</div>
+            <div class="rank-slot-info">
+              <div class="rank-slot-label">อันดับ 2 (2 คะแนน)</div>
+              <div class="rank-slot-name" id="slot2Name">— ยังไม่ได้เลือก —</div>
+            </div>
+            <button class="rank-slot-clear" onclick="clearRank(2)" style="display:none" id="clearSlot2">✕</button>
+          </div>
+          <div class="rank-slot rank3-slot" id="slot3">
+            <div class="rank-slot-icon">🥉</div>
+            <div class="rank-slot-info">
+              <div class="rank-slot-label">อันดับ 3 (1 คะแนน)</div>
+              <div class="rank-slot-name" id="slot3Name">— ยังไม่ได้เลือก —</div>
+            </div>
+            <button class="rank-slot-clear" onclick="clearRank(3)" style="display:none" id="clearSlot3">✕</button>
+          </div>
+        </div>
+        <div class="text-center" id="voteHint" style="font-size:.82rem; color:#9ca3af; margin-bottom:12px;">
+          👇 แตะผลงานด้านล่างเพื่อเลือก
+        </div>
+        <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="submitVote()" id="btnSubmitVote" disabled>
+          🗳️ ยืนยันการโหวต
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📸 ผลงานทั้งหมด</div>
+        <div id="worksGrid" class="works-grid">
+          <div class="loading"><div class="spinner"></div>กำลังโหลด...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PAGE: DASHBOARD ===================== -->
+<div class="page" id="page-dashboard">
+  <div id="dashLoading" class="loading"><div class="spinner"></div>กำลังคำนวณผล...</div>
+  <div id="dashContent" style="display:none">
+
+    <div class="card" style="text-align:center; padding:20px;">
+      <div style="font-size:.85rem; color:#6b7280; margin-bottom:4px;">สถานะการโหวต</div>
+      <span class="badge" id="dashStatusBadge">–</span>
+      <div style="font-size:.85rem; margin-top:8px; color:#6b7280;">
+        ผู้โหวตแล้ว: <strong id="dashTotalVoters">–</strong> คน
+      </div>
+    </div>
+
+    <!-- PODIUM -->
+    <div class="card">
+      <div class="card-title">🏆 ผู้ชนะ 3 อันดับแรก</div>
+      <div id="podium" class="podium"></div>
+    </div>
+
+    <!-- FULL SCORE TABLE -->
+    <div class="card">
+      <div class="card-title">📋 คะแนนทั้งหมด</div>
+      <div style="overflow-x:auto">
+        <table class="score-table" id="scoreTable">
+          <thead>
+            <tr>
+              <th>อันดับ</th>
+              <th>ผลงาน</th>
+              <th>คะแนน</th>
+              <th>🥇</th>
+              <th>🥈</th>
+              <th>🥉</th>
+            </tr>
+          </thead>
+          <tbody id="scoreTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PAGE: SETTINGS ===================== -->
+<div class="page" id="page-settings">
+
+  <!-- Voting Toggle -->
+  <div class="card">
+    <div class="card-title">🔧 ควบคุมการโหวต</div>
+    <div class="flex justify-between items-center gap-8 flex-wrap">
+      <div>
+        สถานะ: <span class="badge" id="settingsStatusBadge">–</span>
+      </div>
+      <div class="flex gap-8">
+        <button class="btn btn-success btn-sm" onclick="setVotingOpen(true)">🟢 เปิดโหวต</button>
+        <button class="btn btn-danger btn-sm" onclick="setVotingOpen(false)">🔴 ปิดโหวต</button>
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <button class="btn btn-danger btn-sm" onclick="confirmClearVotes()">
+        🗑️ ล้างผลโหวตทั้งหมด
+      </button>
+    </div>
+  </div>
+
+  <!-- Voters -->
+  <div class="card">
+    <div class="card-title">👥 จัดการรายชื่อผู้โหวต</div>
+    <div class="flex gap-8 mt-10" style="margin-bottom:12px;">
+      <input type="text" id="newVoterName" class="form-input" placeholder="ชื่อผู้โหวต..." />
+      <button class="btn btn-primary btn-sm" onclick="addVoter()">➕ เพิ่ม</button>
+    </div>
+    <div id="votersList"></div>
+  </div>
+
+  <!-- Works -->
+  <div class="card">
+    <div class="card-title">🖼️ จัดการผลงานนักเรียน</div>
+    <div style="margin-bottom:12px;">
+      <div class="form-group">
+        <label class="form-label">ชื่อนักเรียน</label>
+        <input type="text" id="newWorkStudent" class="form-input" placeholder="ชื่อนักเรียน..." />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Google Drive File ID</label>
+        <input type="text" id="newWorkDriveId" class="form-input" placeholder="เช่น 1aBcDeFgHiJkLmNoPqRsTuVwXyZ" />
+        <div style="font-size:.75rem; color:#9ca3af; margin-top:4px;">
+          วิธีดู File ID: เปิดไฟล์ใน Drive → ดู URL → ส่วน /d/<strong>FILE_ID</strong>/view
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">คำอธิบายผลงาน (ไม่บังคับ)</label>
+        <textarea id="newWorkDesc" class="form-textarea" placeholder="รายละเอียดผลงาน..."></textarea>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="addWork()">➕ เพิ่มผลงาน</button>
+    </div>
+    <div id="worksList"></div>
+  </div>
+
+  <!-- Admin PIN -->
+  <div class="card">
+    <div class="card-title">🔑 เปลี่ยนรหัส Admin PIN</div>
+    <div class="flex gap-8">
+      <input type="password" id="newAdminPin" class="form-input" placeholder="PIN ใหม่ 4 หลัก..." maxlength="6" inputmode="numeric" />
+      <button class="btn btn-outline btn-sm" onclick="changeAdminPin()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN MODAL -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal">
+    <div class="modal-title">🔑 เข้าสู่ระบบแอดมิน</div>
+    <div class="pin-display" id="pinDisplay">____</div>
+    <div class="pin-pad" id="pinPad">
+      <button class="pin-key" onclick="pinPress('1')">1</button>
+      <button class="pin-key" onclick="pinPress('2')">2</button>
+      <button class="pin-key" onclick="pinPress('3')">3</button>
+      <button class="pin-key" onclick="pinPress('4')">4</button>
+      <button class="pin-key" onclick="pinPress('5')">5</button>
+      <button class="pin-key" onclick="pinPress('6')">6</button>
+      <button class="pin-key" onclick="pinPress('7')">7</button>
+      <button class="pin-key" onclick="pinPress('8')">8</button>
+      <button class="pin-key" onclick="pinPress('9')">9</button>
+      <button class="pin-key danger" onclick="pinClear()">⌫</button>
+      <button class="pin-key" onclick="pinPress('0')">0</button>
+      <button class="pin-key" onclick="closeAdminModal()">✕</button>
+    </div>
+    <div id="pinError" style="text-align:center;color:#ef4444;font-size:.85rem;margin-top:10px;display:none;">
+      PIN ไม่ถูกต้อง ลองใหม่อีกครั้ง
+    </div>
+  </div>
+</div>
+
+<!-- IMAGE VIEWER MODAL -->
+<div class="img-modal-overlay" id="imgModal" onclick="closeImgModal()">
+  <img id="imgModalSrc" src="" alt="" />
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ===================================================
+// CONFIG — เปลี่ยน URL ตรงนี้!
+// ===================================================
+const GAS_URL = 'YOUR_GAS_WEB_APP_URL'; // ← วาง URL ของ GAS Web App
+
+// ===================================================
+// STATE
+// ===================================================
+let state = {
+  voters: [],
+  works: [],
+  votes: [],
+  config: {},
+  selectedVoter: null,
+  selectedRanks: { 1: null, 2: null, 3: null }, // workId
+  isAdmin: false,
+  loading: false,
+};
+
+// ===================================================
+// API HELPERS
+// ===================================================
+async function apiGet(action) {
+  const res = await fetch(`${GAS_URL}?action=${action}`);
+  return res.json();
+}
+
+async function apiPost(body) {
+  const res = await fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  return res.json();
+}
+
+// ===================================================
+// INIT
+// ===================================================
+async function refreshAll() {
+  await Promise.all([loadVoters(), loadWorks(), loadConfig()]);
+  renderVoterGrid();
+  if (state.selectedVoter) renderWorksGrid();
+  if (state.isAdmin) renderSettingsVoters(), renderSettingsWorks();
+  renderVotingStatusBanner();
+}
+
+async function loadVoters() {
+  const r = await apiGet('getVoters');
+  if (r.success) state.voters = r.data;
+}
+
+async function loadWorks() {
+  const r = await apiGet('getWorks');
+  if (r.success) state.works = r.data;
+}
+
+async function loadConfig() {
+  const r = await apiGet('getConfig');
+  if (r.success) state.config = r.data;
+}
+
+async function loadVotes() {
+  const r = await apiGet('getVotes');
+  if (r.success) state.votes = r.data;
+}
+
+// ===================================================
+// PAGE NAV
+// ===================================================
+function showPage(name, tabEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (tabEl) tabEl.classList.add('active');
+
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'settings' && state.isAdmin) renderSettingsVoters(), renderSettingsWorks();
+}
+
+// ===================================================
+// VOTING STATUS BANNER
+// ===================================================
+function renderVotingStatusBanner() {
+  const isOpen = state.config.votingOpen === 'true';
+  const banner = document.getElementById('votingClosedBanner');
+  const content = document.getElementById('voteContent');
+  banner.style.display = isOpen ? 'none' : 'block';
+  content.style.display = isOpen ? 'block' : 'none';
+
+  const badge = document.getElementById('settingsStatusBadge');
+  if (badge) {
+    badge.className = 'badge ' + (isOpen ? 'badge-open' : 'badge-closed');
+    badge.textContent = isOpen ? '🟢 เปิดรับโหวต' : '🔴 ปิดรับโหวต';
+  }
+}
+
+// ===================================================
+// VOTER GRID
+// ===================================================
+function renderVoterGrid() {
+  const grid = document.getElementById('voterGrid');
+  if (!state.voters.length) {
+    grid.innerHTML = '<div style="color:#9ca3af;font-size:.88rem;grid-column:1/-1">ยังไม่มีรายชื่อผู้โหวต</div>';
+    return;
+  }
+  grid.innerHTML = state.voters.map(v => `
+    <button class="voter-btn ${state.selectedVoter?.id === v.id ? 'selected' : ''}"
+      onclick="selectVoter('${v.id}')">
+      👤 ${v.name}
+    </button>
+  `).join('');
+}
+
+async function selectVoter(id) {
+  state.selectedVoter = state.voters.find(v => v.id === id);
+  state.selectedRanks = { 1: null, 2: null, 3: null };
+
+  renderVoterGrid();
+  document.getElementById('stepSelectVoter').style.display = 'none';
+  document.getElementById('stepVote').style.display = 'block';
+
+  // โหลดโหวตเพื่อเช็คว่าโหวตไปแล้วหรือยัง
+  await loadVotes();
+  const myVote = state.votes.find(v => v.voterId === id);
+
+  if (myVote) {
+    document.getElementById('alreadyVotedBanner').style.display = 'block';
+    document.getElementById('rankSlotsCard').style.display = 'none';
+    // แสดงผลงานที่โหวต
+    state.selectedRanks[1] = myVote.rank1WorkId;
+    state.selectedRanks[2] = myVote.rank2WorkId;
+    state.selectedRanks[3] = myVote.rank3WorkId;
+    renderRankSlots(true);
+    document.getElementById('rankSlotsCard').style.display = 'block';
+    document.getElementById('btnSubmitVote').style.display = 'none';
+    document.getElementById('voteHint').style.display = 'none';
+  } else {
+    document.getElementById('alreadyVotedBanner').style.display = 'none';
+    document.getElementById('rankSlotsCard').style.display = 'block';
+    document.getElementById('btnSubmitVote').style.display = 'block';
+    document.getElementById('voteHint').style.display = 'block';
+  }
+
+  renderWorksGrid(!!myVote);
+  updateSubmitButton();
+}
+
+// ===================================================
+// RANK SLOTS
+// ===================================================
+function updateRankSlot(rank, workId) {
+  // ถ้า workId นี้อยู่ใน rank อื่นแล้ว ให้เอาออก
+  for (let r = 1; r <= 3; r++) {
+    if (state.selectedRanks[r] === workId && r !== rank) {
+      state.selectedRanks[r] = null;
+    }
+  }
+  state.selectedRanks[rank] = workId;
+  renderRankSlots();
+  renderWorksGrid();
+  updateSubmitButton();
+}
+
+function clearRank(rank) {
+  state.selectedRanks[rank] = null;
+  renderRankSlots();
+  renderWorksGrid();
+  updateSubmitButton();
+}
+
+function renderRankSlots(readonly = false) {
+  [1, 2, 3].forEach(r => {
+    const wid = state.selectedRanks[r];
+    const work = wid ? state.works.find(w => w.id === wid) : null;
+    const nameEl = document.getElementById(`slot${r}Name`);
+    const clearEl = document.getElementById(`clearSlot${r}`);
+    const slotEl = document.getElementById(`slot${r}`);
+    if (nameEl) nameEl.textContent = work ? work.studentName : '— ยังไม่ได้เลือก —';
+    if (clearEl) clearEl.style.display = (work && !readonly) ? 'block' : 'none';
+    if (slotEl) slotEl.classList.toggle('filled', !!work);
+  });
+}
+
+function updateSubmitButton() {
+  const btn = document.getElementById('btnSubmitVote');
+  if (!btn) return;
+  const allFilled = state.selectedRanks[1] && state.selectedRanks[2] && state.selectedRanks[3];
+  btn.disabled = !allFilled;
+}
+
+// ===================================================
+// WORKS GRID (VOTE)
+// ===================================================
+function renderWorksGrid(readonly = false) {
+  const grid = document.getElementById('worksGrid');
+  if (!state.works.length) {
+    grid.innerHTML = '<div style="color:#9ca3af;font-size:.88rem;grid-column:1/-1">ยังไม่มีผลงาน</div>';
+    return;
+  }
+
+  grid.innerHTML = state.works.map(w => {
+    // หา rank ปัจจุบัน
+    let rankClass = '';
+    let rankBadge = '';
+    for (let r = 1; r <= 3; r++) {
+      if (state.selectedRanks[r] === w.id) {
+        rankClass = `rank${r}`;
+        const medals = ['', '🥇', '🥈', '🥉'];
+        rankBadge = `<div class="work-rank-badge rank-badge-${r}">${medals[r]}</div>`;
+      }
+    }
+
+    const imgHtml = w.driveViewUrl
+      ? `<img class="work-img" src="${w.driveViewUrl}" alt="${w.studentName}" onerror="this.parentElement.innerHTML='<div class=work-img-placeholder>🖼️</div>'" onclick="openImgModal('${w.driveViewUrl}', event)" />`
+      : `<div class="work-img-placeholder">🖼️</div>`;
+
+    const clickHandler = readonly ? '' : `onclick="openRankPicker('${w.id}')"`;
+
+    return `
+      <div class="work-card ${rankClass}" ${clickHandler}>
+        ${imgHtml}
+        ${rankBadge}
+        <div class="work-info">
+          <div class="work-name">${w.studentName}</div>
+          ${w.description ? `<div class="work-desc">${w.description}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===================================================
+// RANK PICKER
+// ===================================================
+function openRankPicker(workId) {
+  const work = state.works.find(w => w.id === workId);
+  if (!work) return;
+
+  // ตรวจว่า workId ถูกเลือกอยู่แล้วหรือไม่
+  for (let r = 1; r <= 3; r++) {
+    if (state.selectedRanks[r] === workId) {
+      clearRank(r);
+      return;
+    }
+  }
+
+  // หา rank แรกที่ว่าง
+  for (let r = 1; r <= 3; r++) {
+    if (!state.selectedRanks[r]) {
+      updateRankSlot(r, workId);
+      return;
+    }
+  }
+
+  // ทุก rank เต็มแล้ว — ถามว่าจะแทนที่อันไหน
+  showRankReplaceDialog(workId);
+}
+
+function showRankReplaceDialog(workId) {
+  const work = state.works.find(w => w.id === workId);
+  const medals = ['', '🥇', '🥈', '🥉'];
+  const names = [1,2,3].map(r => {
+    const w = state.works.find(x => x.id === state.selectedRanks[r]);
+    return `${medals[r]} ${w?.studentName || '–'}`;
+  });
+
+  const choice = prompt(
+    `แทนที่อันดับไหนด้วย "${work.studentName}"?\n` +
+    `1) ${names[0]}\n2) ${names[1]}\n3) ${names[2]}\n` +
+    `(พิมพ์ 1, 2 หรือ 3)`
+  );
+  const r = parseInt(choice);
+  if ([1,2,3].includes(r)) updateRankSlot(r, workId);
+}
+
+// ===================================================
+// SUBMIT VOTE
+// ===================================================
+async function submitVote() {
+  if (!state.selectedVoter) return;
+  const { 1: r1, 2: r2, 3: r3 } = state.selectedRanks;
+  if (!r1 || !r2 || !r3) { showToast('กรุณาเลือกครบ 3 อันดับ', 'error'); return; }
+
+  const btn = document.getElementById('btnSubmitVote');
+  btn.disabled = true;
+  btn.textContent = '⏳ กำลังส่ง...';
+
+  const res = await apiPost({
+    action: 'submitVote',
+    voterId: state.selectedVoter.id,
+    voterName: state.selectedVoter.name,
+    rank1: r1, rank2: r2, rank3: r3,
+  });
+
+  if (res.success) {
+    showToast('✅ โหวตสำเร็จ ขอบคุณ!', 'success');
+    document.getElementById('alreadyVotedBanner').style.display = 'block';
+    document.getElementById('btnSubmitVote').style.display = 'none';
+    document.getElementById('voteHint').style.display = 'none';
+    renderRankSlots(true);
+    renderWorksGrid(true);
+  } else {
+    const msgs = {
+      already_voted: 'คุณโหวตไปแล้ว',
+      voting_closed: 'ปิดรับการโหวตแล้ว',
+      duplicate_rank: 'เลือกผลงานซ้ำกัน',
+    };
+    showToast(msgs[res.error] || 'เกิดข้อผิดพลาด', 'error');
+    btn.disabled = false;
+    btn.textContent = '🗳️ ยืนยันการโหวต';
+  }
+}
+
+// ===================================================
+// DASHBOARD
+// ===================================================
+async function loadDashboard() {
+  document.getElementById('dashLoading').style.display = 'block';
+  document.getElementById('dashContent').style.display = 'none';
+
+  const r = await apiGet('getDashboard');
+  if (!r.success) { showToast('โหลดข้อมูลไม่ได้', 'error'); return; }
+
+  const { works, totalVoters, votingOpen } = r.data;
+
+  // Status
+  const badge = document.getElementById('dashStatusBadge');
+  badge.className = 'badge ' + (votingOpen ? 'badge-open' : 'badge-closed');
+  badge.textContent = votingOpen ? '🟢 เปิดรับโหวต' : '🔴 ปิดแล้ว';
+  document.getElementById('dashTotalVoters').textContent = totalVoters;
+
+  // Podium (top 3)
+  const top3 = works.slice(0, 3);
+  const order = top3.length >= 3 ? [1, 0, 2] : [0, 1, 2]; // [silver, gold, bronze]
+  const podiumEl = document.getElementById('podium');
+
+  const podiumItems = order.map(idx => {
+    const w = top3[idx];
+    if (!w) return '';
+    const medals = ['🥇', '🥈', '🥉'];
+    const classes = ['p1', 'p2', 'p3'];
+    const heights = ['90px', '70px', '55px'];
+    const realRank = idx + 1;
+    const ci = realRank === 1 ? 0 : realRank === 2 ? 1 : 2;
+    const imgHtml = w.driveViewUrl
+      ? `<img src="${w.driveViewUrl}" onerror="this.style.display='none'" />`
+      : '🖼️';
+    return `
+      <div class="podium-item ${classes[ci]}">
+        <div class="podium-rank">${medals[ci]}</div>
+        <div class="podium-img-wrap">${imgHtml}</div>
+        <div class="podium-name">${w.studentName}</div>
+        <div class="podium-score">${w.score} คะแนน</div>
+        <div class="podium-block" style="height:${heights[ci]}; width:${ci===0?'80px':'70px'}">${realRank}</div>
+      </div>
+    `;
+  });
+  podiumEl.innerHTML = podiumItems.join('');
+
+  // Score table
+  const tbody = document.getElementById('scoreTableBody');
+  const medals = ['🥇', '🥈', '🥉'];
+  tbody.innerHTML = works.map((w, i) => `
+    <tr>
+      <td><span class="medal">${medals[i] || (i+1)}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${w.driveViewUrl ? `<img src="${w.driveViewUrl}" class="work-thumb" onerror="this.style.display='none'" />` : '<div style="width:40px;height:40px;background:#e0e7ff;border-radius:8px;"></div>'}
+          <div>
+            <div style="font-weight:700;font-size:.88rem;">${w.studentName}</div>
+            ${w.description ? `<div style="font-size:.75rem;color:#9ca3af;">${w.description}</div>` : ''}
+          </div>
+        </div>
+      </td>
+      <td><strong style="color:var(--primary)">${w.score}</strong></td>
+      <td>${w.rank1Count}</td>
+      <td>${w.rank2Count}</td>
+      <td>${w.rank3Count}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('dashLoading').style.display = 'none';
+  document.getElementById('dashContent').style.display = 'block';
+}
+
+// ===================================================
+// SETTINGS
+// ===================================================
+async function setVotingOpen(open) {
+  await apiPost({ action: 'setVotingOpen', open });
+  await loadConfig();
+  renderVotingStatusBanner();
+  showToast(open ? '🟢 เปิดรับโหวตแล้ว' : '🔴 ปิดการโหวตแล้ว', 'success');
+}
+
+async function confirmClearVotes() {
+  if (!confirm('⚠️ ยืนยันล้างผลโหวตทั้งหมด? ไม่สามารถกู้คืนได้!')) return;
+  const r = await apiPost({ action: 'clearVotes' });
+  if (r.success) showToast('🗑️ ล้างผลโหวตเรียบร้อย', 'success');
+  else showToast('เกิดข้อผิดพลาด', 'error');
+}
+
+// --- VOTERS ---
+function renderSettingsVoters() {
+  const el = document.getElementById('votersList');
+  if (!state.voters.length) {
+    el.innerHTML = '<div style="color:#9ca3af;font-size:.88rem;">ยังไม่มีรายชื่อ</div>';
+    return;
+  }
+  el.innerHTML = state.voters.map((v, i) => `
+    <div class="list-item">
+      <div class="list-item-icon">${i+1}</div>
+      <div class="list-item-info">
+        <div class="list-item-name" id="voterName_${v.id}">${v.name}</div>
+      </div>
+      <div class="list-item-actions">
+        <button class="btn btn-outline btn-sm" onclick="editVoter('${v.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteVoter('${v.id}')">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function addVoter() {
+  const inp = document.getElementById('newVoterName');
+  const name = inp.value.trim();
+  if (!name) { showToast('กรุณาใส่ชื่อ', 'error'); return; }
+  const r = await apiPost({ action: 'addVoter', name });
+  if (r.success) {
+    inp.value = '';
+    await loadVoters();
+    renderVoterGrid();
+    renderSettingsVoters();
+    showToast('✅ เพิ่มผู้โหวตแล้ว', 'success');
+  }
+}
+
+async function editVoter(id) {
+  const voter = state.voters.find(v => v.id === id);
+  if (!voter) return;
+  const newName = prompt('แก้ไขชื่อผู้โหวต:', voter.name);
+  if (!newName || newName === voter.name) return;
+  const r = await apiPost({ action: 'updateVoter', id, name: newName.trim() });
+  if (r.success) {
+    await loadVoters();
+    renderVoterGrid();
+    renderSettingsVoters();
+    showToast('✅ แก้ไขชื่อแล้ว', 'success');
+  }
+}
+
+async function deleteVoter(id) {
+  if (!confirm('ลบผู้โหวตคนนี้?')) return;
+  const r = await apiPost({ action: 'deleteVoter', id });
+  if (r.success) {
+    await loadVoters();
+    renderVoterGrid();
+    renderSettingsVoters();
+    showToast('🗑️ ลบแล้ว', 'success');
+  }
+}
+
+// --- WORKS ---
+function renderSettingsWorks() {
+  const el = document.getElementById('worksList');
+  if (!state.works.length) {
+    el.innerHTML = '<div style="color:#9ca3af;font-size:.88rem;">ยังไม่มีผลงาน</div>';
+    return;
+  }
+  el.innerHTML = state.works.map(w => `
+    <div class="list-item">
+      ${w.driveViewUrl
+        ? `<img class="work-thumb" src="${w.driveViewUrl}" onerror="this.style.background='#e0e7ff'" onclick="openImgModal('${w.driveViewUrl}', event)" style="cursor:pointer">`
+        : '<div class="work-thumb" style="background:#e0e7ff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;">🖼️</div>'
+      }
+      <div class="list-item-info">
+        <div class="list-item-name">${w.studentName}</div>
+        <div class="list-item-sub">${w.description || '—'}</div>
+      </div>
+      <div class="list-item-actions">
+        <button class="btn btn-outline btn-sm" onclick="editWork('${w.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteWork('${w.id}')">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function addWork() {
+  const student = document.getElementById('newWorkStudent').value.trim();
+  const driveFileId = document.getElementById('newWorkDriveId').value.trim();
+  const description = document.getElementById('newWorkDesc').value.trim();
+  if (!student) { showToast('กรุณาใส่ชื่อนักเรียน', 'error'); return; }
+  const r = await apiPost({ action: 'addWork', studentName: student, driveFileId, description });
+  if (r.success) {
+    document.getElementById('newWorkStudent').value = '';
+    document.getElementById('newWorkDriveId').value = '';
+    document.getElementById('newWorkDesc').value = '';
+    await loadWorks();
+    renderSettingsWorks();
+    showToast('✅ เพิ่มผลงานแล้ว', 'success');
+  }
+}
+
+async function editWork(id) {
+  const work = state.works.find(w => w.id === id);
+  if (!work) return;
+  const newName = prompt('แก้ไขชื่อนักเรียน:', work.studentName);
+  if (!newName) return;
+  const newDriveId = prompt('แก้ไข Drive File ID (ว่างไว้หากไม่เปลี่ยน):', work.driveFileId || '');
+  const r = await apiPost({
+    action: 'updateWork', id,
+    studentName: newName.trim(),
+    driveFileId: newDriveId?.trim() || work.driveFileId,
+  });
+  if (r.success) {
+    await loadWorks();
+    renderSettingsWorks();
+    showToast('✅ แก้ไขผลงานแล้ว', 'success');
+  }
+}
+
+async function deleteWork(id) {
+  if (!confirm('ลบผลงานนี้?')) return;
+  const r = await apiPost({ action: 'deleteWork', id });
+  if (r.success) {
+    await loadWorks();
+    renderSettingsWorks();
+    showToast('🗑️ ลบแล้ว', 'success');
+  }
+}
+
+async function changeAdminPin() {
+  const inp = document.getElementById('newAdminPin');
+  const pin = inp.value.trim();
+  if (!pin || pin.length < 4) { showToast('PIN ต้องมีอย่างน้อย 4 หลัก', 'error'); return; }
+  await apiPost({ action: 'changeAdminPin', newPin: pin });
+  inp.value = '';
+  showToast('✅ เปลี่ยน PIN แล้ว', 'success');
+}
+
+// ===================================================
+// ADMIN LOGIN
+// ===================================================
+let pinValue = '';
+
+function openAdminModal() {
+  if (state.isAdmin) {
+    // ออกจาก admin mode
+    state.isAdmin = false;
+    document.getElementById('settingsTab').style.display = 'none';
+    showToast('ออกจากโหมดแอดมินแล้ว');
+    return;
+  }
+  pinValue = '';
+  updatePinDisplay();
+  document.getElementById('pinError').style.display = 'none';
+  document.getElementById('adminModal').classList.add('open');
+}
+
+function closeAdminModal() {
+  document.getElementById('adminModal').classList.remove('open');
+}
+
+function pinPress(v) {
+  if (pinValue.length >= 6) return;
+  pinValue += v;
+  updatePinDisplay();
+  if (pinValue.length >= 4) {
+    setTimeout(() => verifyPin(), 200);
+  }
+}
+
+function pinClear() {
+  pinValue = pinValue.slice(0, -1);
+  updatePinDisplay();
+}
+
+function updatePinDisplay() {
+  const el = document.getElementById('pinDisplay');
+  const filled = '●'.repeat(pinValue.length);
+  const empty = '_'.repeat(Math.max(0, 4 - pinValue.length));
+  el.textContent = filled + empty;
+}
+
+async function verifyPin() {
+  const r = await apiPost({ action: 'verifyAdmin', pin: pinValue });
+  if (r.success) {
+    state.isAdmin = true;
+    closeAdminModal();
+    document.getElementById('settingsTab').style.display = '';
+    showToast('✅ เข้าสู่โหมดแอดมิน', 'success');
+    showPage('settings', document.querySelector('.nav-tab:nth-child(3)'));
+    renderSettingsVoters();
+    renderSettingsWorks();
+    renderVotingStatusBanner();
+  } else {
+    document.getElementById('pinError').style.display = 'block';
+    pinValue = '';
+    updatePinDisplay();
+  }
+}
+
+// ===================================================
+// IMAGE MODAL
+// ===================================================
+function openImgModal(src, e) {
+  if (e) e.stopPropagation();
+  document.getElementById('imgModalSrc').src = src;
+  document.getElementById('imgModal').classList.add('open');
+}
+
+function closeImgModal() {
+  document.getElementById('imgModal').classList.remove('open');
+  document.getElementById('imgModalSrc').src = '';
+}
+
+// ===================================================
+// TOAST
+// ===================================================
+function showToast(msg, type = '') {
+  const tc = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  tc.appendChild(t);
+  setTimeout(() => t.remove(), 2800);
+}
+
+// ===================================================
+// BOOT
+// ===================================================
+window.addEventListener('DOMContentLoaded', async () => {
+  await refreshAll();
+});
+</script>
+</body>
+</html>
